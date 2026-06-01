@@ -31,6 +31,7 @@ function App() {
   const [answerPanel, setAnswerPanel] = useState(null);
   const [panelFitZoom, setPanelFitZoom] = useState(null);
   const [paragraphOverview, setParagraphOverview] = useState(null);
+  const [isDraggingPdf, setIsDraggingPdf] = useState(false);
   const promptRef = useRef(null);
   const readerShellRef = useRef(null);
   const paragraphRequestIdRef = useRef(0);
@@ -178,12 +179,12 @@ function App() {
     return () => document.removeEventListener("click", onParagraphButtonClick);
   }, []);
 
-  async function onFileChange(event) {
-    const file = event.target.files?.[0];
+  async function loadPdfFile(file) {
     if (!file) return;
 
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       setError("Please choose a PDF file.");
+      setIsDraggingPdf(false);
       return;
     }
 
@@ -204,7 +205,43 @@ function App() {
       console.error(loadError);
       setStatus("Choose one PDF to begin.");
       setError("That PDF could not be loaded.");
+    } finally {
+      setIsDraggingPdf(false);
     }
+  }
+
+  async function onFileChange(event) {
+    const file = event.target.files?.[0];
+    await loadPdfFile(file);
+    event.target.value = "";
+  }
+
+  function onDragEnter(event) {
+    if (!event.dataTransfer?.types?.includes("Files")) return;
+
+    event.preventDefault();
+    setIsDraggingPdf(true);
+  }
+
+  function onDragOver(event) {
+    if (!event.dataTransfer?.types?.includes("Files")) return;
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsDraggingPdf(true);
+  }
+
+  function onDragLeave(event) {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+
+    setIsDraggingPdf(false);
+  }
+
+  function onDrop(event) {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0];
+    loadPdfFile(file);
   }
 
   function changeZoom(nextZoom) {
@@ -270,7 +307,15 @@ function App() {
   }
 
   return (
-    <main className={answerPanel ? "hasAnswerPanel" : ""}>
+    <main
+      className={[answerPanel ? "hasAnswerPanel" : "", isDraggingPdf ? "isDraggingPdf" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <header className="topbar">
         <div>
           <h1>PDF Web Reader</h1>
@@ -329,8 +374,8 @@ function App() {
       <section className="readerShell" ref={readerShellRef} aria-label="PDF reader">
         {!pdf ? (
           <div className="emptyState">
-            <strong>Select a PDF</strong>
-            <span>Highlight text in the document, then press {SHORTCUT_LABEL} to ask about it.</span>
+            <strong>Drop a PDF here</strong>
+            <span>Or open one with the button above. Highlight text, then press {SHORTCUT_LABEL} to ask about it.</span>
           </div>
         ) : (
           <PdfDocument pdf={pdf} zoom={effectiveZoom} renderZoom={renderZoom} />
