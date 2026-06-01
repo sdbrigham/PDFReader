@@ -568,7 +568,28 @@ main.isDraggingPdf {
   color: #202124;
   font-size: 15px;
   line-height: 1.72;
-  white-space: pre-wrap;
+}
+
+.panelAnswer p,
+.paragraphOverviewAnswer p {
+  margin: 0;
+}
+
+.panelAnswer p + p,
+.paragraphOverviewAnswer p + p {
+  margin-top: 14px;
+}
+
+.panelAnswer a,
+.paragraphOverviewAnswer a {
+  color: #3156d4;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.panelAnswer a:hover,
+.paragraphOverviewAnswer a:hover {
+  text-decoration: underline;
 }
 
 .panelError {
@@ -625,7 +646,6 @@ main.isDraggingPdf {
   color: #202124;
   font-size: 14.5px;
   line-height: 1.66;
-  white-space: pre-wrap;
 }
 
 .loadingState {

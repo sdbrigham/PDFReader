@@ -698,10 +698,10 @@ function AnswerPanel({ panel, onClose }) {
             </div>
           ) : null}
           {panel.answer ? (
-            <p className="panelAnswer" aria-live="polite">
-              {panel.answer}
+            <div className="panelAnswer" aria-live="polite">
+              <RichAnswerText text={panel.answer} />
               {panel.isStreaming ? <span className="streamCursor" /> : null}
-            </p>
+            </div>
           ) : null}
           {panel.error ? <p className="panelError">{panel.error}</p> : null}
         </section>
@@ -730,13 +730,52 @@ function ParagraphOverview({ overview, onClose }) {
         </div>
       ) : null}
       {overview.answer ? (
-        <p className="paragraphOverviewAnswer" aria-live="polite">
-          {overview.answer}
-        </p>
+        <div className="paragraphOverviewAnswer" aria-live="polite">
+          <RichAnswerText text={overview.answer} />
+        </div>
       ) : null}
       {overview.error ? <p className="panelError">{overview.error}</p> : null}
     </aside>
   );
+}
+
+function RichAnswerText({ text }) {
+  return text.split(/\n{2,}/).map((paragraph, paragraphIndex) => (
+    <p key={`${paragraphIndex}-${paragraph.slice(0, 12)}`}>
+      {renderInlineLinks(paragraph)}
+    </p>
+  ));
+}
+
+function renderInlineLinks(text) {
+  const parts = [];
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkPattern.exec(text))) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    parts.push(
+      <a
+        key={`${match[1]}-${match.index}`}
+        href={match[2]}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {match[1]}
+      </a>
+    );
+    lastIndex = linkPattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
 }
 
 function PdfDocument({ pdf, zoom, renderZoom }) {
