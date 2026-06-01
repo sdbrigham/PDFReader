@@ -476,7 +476,7 @@ function App() {
         body: JSON.stringify({
           selection: paragraphText,
           prompt:
-            "Give a fast-reading overview of this paragraph. Immediately explain what it means in plain language, bypass jargon, and include enough detail that the reader can understand the paragraph without rereading it. If it includes bullets, fold them into the explanation instead of using a bullet list."
+            "Create a reading aid for this text. Start immediately with the meaning in plain language, bypass jargon, and include enough detail that the reader can move faster without rereading. If it includes bullets, fold them into the explanation instead of using a bullet list."
         })
       });
 
@@ -726,7 +726,7 @@ function ParagraphOverview({ overview, onClose }) {
       {overview.isLoading && !overview.answer ? (
         <div className="loadingState compact" role="status" aria-live="polite">
           <span className="spinner" />
-          <span>Reading paragraph...</span>
+          <span>Reading...</span>
         </div>
       ) : null}
       {overview.answer ? (
