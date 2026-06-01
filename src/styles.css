@@ -300,8 +300,8 @@ main {
 .paragraphButton {
   position: absolute;
   z-index: 4;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 999px;
   background: #3156d4;
@@ -554,8 +554,8 @@ main {
 .paragraphOverview {
   position: absolute;
   z-index: 45;
-  width: min(380px, calc(100vw - 32px));
-  max-height: min(520px, calc(100vh - 96px));
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(280px, calc(100vh - 96px));
   overflow: auto;
   border: 1px solid #cfc7bb;
   border-radius: 10px;
@@ -593,18 +593,6 @@ main {
   font-size: 15px;
   font-weight: 760;
   line-height: 1;
-}
-
-.paragraphOverviewSource {
-  max-height: 110px;
-  overflow: auto;
-  margin: 0 0 12px;
-  border-radius: 8px;
-  background: #f4f1eb;
-  color: #4b4540;
-  padding: 10px;
-  font-size: 12px;
-  line-height: 1.45;
 }
 
 .paragraphOverviewAnswer {

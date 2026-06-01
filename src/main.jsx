@@ -431,7 +431,7 @@ function App() {
         body: JSON.stringify({
           selection: paragraphText,
           prompt:
-            "Give a simplified overview of this paragraph. Explain the main idea in plain language, clarify important notation or terms, and keep it focused for readability."
+            "Give a simplified overview of this paragraph in no more than two sentences. If it includes bullets, include them as part of the paragraph's main idea instead of using a bullet list."
         })
       });
 
@@ -490,6 +490,7 @@ function App() {
         currentOverview
           ? {
               ...currentOverview,
+              answer: trimToTwoSentences(currentOverview.answer),
               isLoading: false
             }
           : currentOverview
@@ -678,7 +679,6 @@ function ParagraphOverview({ overview, onClose }) {
           x
         </button>
       </div>
-      <p className="paragraphOverviewSource">{overview.text}</p>
       {overview.isLoading && !overview.answer ? (
         <div className="loadingState compact" role="status" aria-live="polite">
           <span className="spinner" />
@@ -848,14 +848,14 @@ function renderWordLayer({ textContent, textLayer, viewport, pageNumber }) {
     }
   }
 
-  for (const paragraph of getParagraphsFromWords(wordRecords)) {
+  for (const paragraph of getParagraphsFromWords(wordRecords, viewport.width)) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "paragraphButton";
     button.dataset.paragraph = paragraph.text;
     button.setAttribute("aria-label", "Simplify this paragraph");
     button.title = "Simplify this paragraph";
-    button.style.left = `${paragraph.x + 7}px`;
+    button.style.left = `${Math.max(8, paragraph.pageWidth - 22)}px`;
     button.style.top = `${Math.max(2, paragraph.y - 2)}px`;
     fragment.append(button);
   }
@@ -863,7 +863,7 @@ function renderWordLayer({ textContent, textLayer, viewport, pageNumber }) {
   textLayer.append(fragment);
 }
 
-function getParagraphsFromWords(words) {
+function getParagraphsFromWords(words, pageWidth) {
   if (!words.length) return [];
 
   const lines = [];
@@ -901,10 +901,12 @@ function getParagraphsFromWords(words) {
     const previous = current?.lines.at(-1);
     const verticalGap = previous ? line.y - (previous.y + previous.height) : 0;
     const indentDelta = previous ? line.x - previous.x : 0;
+    const isBulletContinuation = current && isBulletLikeLine(line.text);
     const startsNewParagraph =
       !current ||
-      verticalGap > line.height * 0.85 ||
-      (indentDelta > 18 && current.lines.length > 1);
+      (!isBulletContinuation &&
+        (verticalGap > line.height * 0.85 ||
+          (indentDelta > 18 && current.lines.length > 1)));
 
     if (startsNewParagraph) {
       current = { lines: [line] };
@@ -924,10 +926,30 @@ function getParagraphsFromWords(words) {
       return {
         text,
         x: firstLine.x,
-        y: firstLine.y
+        y: firstLine.y,
+        pageWidth
       };
     })
     .filter((paragraph) => paragraph.text.split(/\s+/).length >= 8);
+}
+
+function isBulletLikeLine(text) {
+  return /^([-*•]|\d+[.)])\s+/.test(text.trim());
+}
+
+function trimToTwoSentences(text) {
+  const cleaned = text
+    .replace(/(?:^|\n)\s*Sources checked:[\s\S]*$/i, "")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
+  if (sentences.length >= 2) return sentences.slice(0, 2).join(" ");
+  return cleaned;
 }
 
 function splitTextIntoWordRuns(text) {
