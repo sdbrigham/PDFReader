@@ -579,9 +579,9 @@ main.isDraggingPdf {
 .paragraphOverview {
   position: absolute;
   z-index: 45;
-  width: min(340px, calc(100vw - 32px));
-  max-height: min(280px, calc(100vh - 96px));
-  overflow: auto;
+  width: min(460px, calc(100vw - 32px));
+  max-height: none;
+  overflow: visible;
   border: 1px solid #cfc7bb;
   border-radius: 10px;
   background: #fffefa;
@@ -623,8 +623,8 @@ main.isDraggingPdf {
 .paragraphOverviewAnswer {
   margin: 0;
   color: #202124;
-  font-size: 14px;
-  line-height: 1.62;
+  font-size: 14.5px;
+  line-height: 1.66;
   white-space: pre-wrap;
 }
 

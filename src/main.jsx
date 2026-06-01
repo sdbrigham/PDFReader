@@ -457,7 +457,7 @@ function App() {
     const top = window.scrollY + rect.top - 6;
     const left = Math.min(
       window.scrollX + rect.right + 10,
-      window.scrollX + document.documentElement.clientWidth - 390
+      window.scrollX + document.documentElement.clientWidth - 480
     );
 
     setParagraphOverview({
@@ -476,7 +476,7 @@ function App() {
         body: JSON.stringify({
           selection: paragraphText,
           prompt:
-            "Give a simplified overview of this paragraph in no more than two sentences. If it includes bullets, include them as part of the paragraph's main idea instead of using a bullet list."
+            "Give a fast-reading overview of this paragraph. Immediately explain what it means in plain language, bypass jargon, and include enough detail that the reader can understand the paragraph without rereading it. If it includes bullets, fold them into the explanation instead of using a bullet list."
         })
       });
 
@@ -535,7 +535,6 @@ function App() {
         currentOverview
           ? {
               ...currentOverview,
-              answer: trimToTwoSentences(currentOverview.answer),
               isLoading: false
             }
           : currentOverview
@@ -980,21 +979,6 @@ function getParagraphsFromWords(words, pageWidth) {
 
 function isBulletLikeLine(text) {
   return /^([-*•]|\d+[.)])\s+/.test(text.trim());
-}
-
-function trimToTwoSentences(text) {
-  const cleaned = text
-    .replace(/(?:^|\n)\s*Sources checked:[\s\S]*$/i, "")
-    .replace(/^\s*[-*•]\s+/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  const sentences = cleaned
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean);
-
-  if (sentences.length >= 2) return sentences.slice(0, 2).join(" ");
-  return cleaned;
 }
 
 function splitTextIntoWordRuns(text) {
