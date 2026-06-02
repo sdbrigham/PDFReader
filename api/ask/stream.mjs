@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { prompt, selection } = req.body || {};
+  const { prompt, selection, mode } = req.body || {};
 
   if (!prompt?.trim() || !selection?.trim()) {
     res.statusCode = 400;
@@ -26,6 +26,7 @@ export default async function handler(req, res) {
     await answerQuestionStream({
       prompt: prompt.trim(),
       selection: selection.trim(),
+      mode,
       onEvent: (event, data) => sendStreamEvent(res, event, data)
     });
     sendStreamEvent(res, "done", {});

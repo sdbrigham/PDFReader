@@ -17,7 +17,7 @@ app.use(express.json({ limit: "1mb" }));
 
 app.post("/api/ask", async (req, res) => {
   try {
-    const { prompt, selection } = req.body || {};
+    const { prompt, selection, mode } = req.body || {};
 
     if (!prompt?.trim() || !selection?.trim()) {
       res.status(400).json({ error: "A prompt and selected PDF text are required." });
@@ -27,7 +27,8 @@ app.post("/api/ask", async (req, res) => {
     res.json({
       answer: await answerQuestion({
         prompt: prompt.trim(),
-        selection: selection.trim()
+        selection: selection.trim(),
+        mode
       })
     });
   } catch (error) {
@@ -42,7 +43,7 @@ app.post("/api/ask", async (req, res) => {
 });
 
 app.post("/api/ask/stream", async (req, res) => {
-  const { prompt, selection } = req.body || {};
+  const { prompt, selection, mode } = req.body || {};
 
   if (!prompt?.trim() || !selection?.trim()) {
     res.status(400).json({ error: "A prompt and selected PDF text are required." });
@@ -59,6 +60,7 @@ app.post("/api/ask/stream", async (req, res) => {
     await answerQuestionStream({
       prompt: prompt.trim(),
       selection: selection.trim(),
+      mode,
       onEvent: (event, data) => sendStreamEvent(res, event, data)
     });
     sendStreamEvent(res, "done", {});

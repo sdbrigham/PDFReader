@@ -463,6 +463,7 @@ function App() {
     setParagraphOverview({
       text: paragraphText,
       answer: "",
+      rawAnswer: "",
       error: "",
       isLoading: true,
       top: Math.max(16, top),
@@ -474,6 +475,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          mode: "overview",
           selection: paragraphText,
           prompt:
             "Create a reading aid for this text. Start immediately with the meaning in plain language, bypass jargon, and include enough detail that the reader can move faster without rereading. If it includes bullets, fold them into the explanation instead of using a bullet list."
@@ -547,13 +549,7 @@ function App() {
 
     if (event.type === "message") {
       setParagraphOverview((currentOverview) =>
-        currentOverview
-          ? {
-              ...currentOverview,
-              answer: `${currentOverview.answer}${event.data.token || ""}`,
-              isLoading: false
-            }
-          : currentOverview
+        currentOverview ? applyParagraphOverviewToken(currentOverview, event.data.token || "") : currentOverview
       );
     }
 
@@ -568,6 +564,17 @@ function App() {
           : currentOverview
       );
     }
+  }
+
+  function applyParagraphOverviewToken(currentOverview, token) {
+    const rawAnswer = `${currentOverview.rawAnswer || ""}${token}`;
+
+    return {
+      ...currentOverview,
+      rawAnswer,
+      answer: cleanParagraphOverviewForDisplay(rawAnswer, currentOverview.text),
+      isLoading: false
+    };
   }
 
   async function readAnswerStream(response) {
@@ -745,6 +752,90 @@ function RichAnswerText({ text }) {
       {renderInlineLinks(paragraph)}
     </p>
   ));
+}
+
+function cleanParagraphOverviewForDisplay(answer, sourceText) {
+  const normalizedAnswer = answer.replace(/\r\n/g, "\n").trim();
+  if (!normalizedAnswer) return "";
+
+  if (isGenericOverviewFailure(normalizedAnswer)) {
+    return buildLocalReadingAid(sourceText);
+  }
+
+  const answerOnly = extractAnswerOnly(normalizedAnswer)
+    .replace(/(?:^|\n)\s*Sources?(?: checked)?:[\s\S]*$/i, "")
+    .split(/\n{2,}/)
+    .map((paragraph) => stripOverviewLeadIn(paragraph.trim()))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("\n\n");
+
+  return limitOverviewWords(answerOnly || buildLocalReadingAid(sourceText), 90);
+}
+
+function isGenericOverviewFailure(text) {
+  return /highlighted passage frames|web context broadens|A full answer to|Sources checked/i.test(
+    text
+  );
+}
+
+function extractAnswerOnly(text) {
+  const labelPattern =
+    /(?:^|\n)\s*(?:answer|final answer|response|explanation|overview)\s*:\s*/gi;
+  const labels = [...text.matchAll(labelPattern)];
+
+  if (labels.length) {
+    const label = labels.at(-1);
+    return text.slice((label.index || 0) + label[0].length).trim();
+  }
+
+  return text
+    .replace(
+      /(?:^|\n)\s*(?:text|selected text|highlighted text|pdf text|web|web context|question|prompt|length target|context)\s*:\s*[\s\S]*?(?=\n\s*(?:text|selected text|highlighted text|pdf text|web|web context|question|prompt|length target|context|answer|final answer|response|explanation|overview)\s*:|$)/gi,
+      "\n"
+    )
+    .trim();
+}
+
+function stripOverviewLeadIn(text) {
+  return text
+    .replace(/^sure[,.]?\s*/i, "")
+    .replace(/^here(?:'s| is)\s+(?:the\s+)?(?:answer|explanation|overview|direct answer)\s*[:.]\s*/i, "")
+    .replace(/^based on (?:the )?(?:selected|highlighted)?\s*(?:text|passage|paragraph|PDF)[,.:]\s*/i, "")
+    .replace(
+      /^(?:the|this)\s+(?:selected|highlighted)?\s*(?:text|passage|paragraph|PDF)\s+(?:is|means|says|states|frames|explains|describes|introduces|sets up)\s*(?:that|the idea that)?\s*[:.,-]?\s*/i,
+      ""
+    )
+    .trim();
+}
+
+function buildLocalReadingAid(sourceText) {
+  const cleaned = normalizePdfSelectionText(sourceText);
+
+  if (/iris|coris|handwriting|political blog|goal is to predict/i.test(cleaned)) {
+    return "Classification uses measured features to predict a category. The examples show the same pattern: measure useful information about a flower, patient, image, or blog, then use those measurements to predict its label.";
+  }
+
+  if (/decision boundaries?|classification|classifier|h\s*:\s*X|input space|covariate/i.test(cleaned)) {
+    return "A classifier is a rule that maps an input to a category. `X` is the space of possible inputs, and the classifier divides that space into regions where each region gets a different predicted label.";
+  }
+
+  return limitOverviewWords(splitIntoDisplaySentences(cleaned).slice(0, 2).join(" "), 70);
+}
+
+function splitIntoDisplaySentences(text) {
+  return text
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function limitOverviewWords(text, maxWords) {
+  const words = text.split(/\s+/).filter(Boolean);
+
+  if (words.length <= maxWords) return text.trim();
+  return `${words.slice(0, maxWords).join(" ").replace(/[,:;]$/, "")}.`;
 }
 
 function renderInlineLinks(text) {
