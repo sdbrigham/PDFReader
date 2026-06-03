@@ -770,7 +770,10 @@ function cleanParagraphOverviewForDisplay(answer, sourceText) {
     .slice(0, 2)
     .join("\n\n");
 
-  return limitOverviewWords(answerOnly || buildLocalReadingAid(sourceText), 90);
+  return limitOverviewWords(
+    dedupeRepeatedOverviewText(answerOnly || buildLocalReadingAid(sourceText)),
+    90
+  );
 }
 
 function isGenericOverviewFailure(text) {
@@ -836,6 +839,35 @@ function limitOverviewWords(text, maxWords) {
 
   if (words.length <= maxWords) return text.trim();
   return `${words.slice(0, maxWords).join(" ").replace(/[,:;]$/, "")}.`;
+}
+
+function dedupeRepeatedOverviewText(text) {
+  const seenParagraphs = new Set();
+
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => dedupeRepeatedOverviewSentences(paragraph.trim()))
+    .filter(Boolean)
+    .filter((paragraph) => {
+      const key = paragraph.toLowerCase();
+      if (seenParagraphs.has(key)) return false;
+      seenParagraphs.add(key);
+      return true;
+    })
+    .join("\n\n");
+}
+
+function dedupeRepeatedOverviewSentences(text) {
+  const seenSentences = new Set();
+
+  return splitIntoDisplaySentences(text)
+    .filter((sentence) => {
+      const key = sentence.toLowerCase();
+      if (seenSentences.has(key)) return false;
+      seenSentences.add(key);
+      return true;
+    })
+    .join(" ");
 }
 
 function renderInlineLinks(text) {
@@ -1027,8 +1059,8 @@ function renderWordLayer({ textContent, textLayer, viewport, pageNumber }) {
     button.type = "button";
     button.className = "paragraphButton";
     button.dataset.paragraph = paragraph.text;
-    button.setAttribute("aria-label", "Simplify this paragraph");
-    button.title = "Simplify this paragraph";
+    button.setAttribute("aria-label", "Summarize this section");
+    button.title = "Summarize this section";
     button.style.left = `${Math.max(8, paragraph.pageWidth - 22)}px`;
     button.style.top = `${Math.max(2, paragraph.y - 2)}px`;
     fragment.append(button);
@@ -1074,31 +1106,25 @@ function getParagraphsFromWords(words, pageWidth) {
     normalLineGap + medianLineHeight * 0.55,
     normalLineGap * 1.9
   );
-  const paragraphs = [];
-  let current = null;
+  const breakIndexes = [];
 
-  for (const line of lines) {
-    const previous = current?.lines.at(-1);
-    const verticalGap = previous ? line.y - (previous.y + previous.height) : 0;
-    const isBulletContinuation = current && isBulletLikeLine(line.text);
-    const startsNewParagraph =
-      !current ||
-      (!isBulletContinuation &&
-        verticalGap > paragraphGapThreshold);
+  for (let index = 1; index < lines.length; index += 1) {
+    const previous = lines[index - 1];
+    const line = lines[index];
+    const verticalGap = line.y - (previous.y + previous.height);
 
-    if (startsNewParagraph) {
-      current = { lines: [line] };
-      paragraphs.push(current);
-    } else {
-      current.lines.push(line);
+    if (!isBulletLikeLine(line.text) && verticalGap > paragraphGapThreshold) {
+      breakIndexes.push(index);
     }
   }
 
-  return paragraphs
-    .map((paragraph) => {
-      const firstLine = paragraph.lines[0];
+  return breakIndexes
+    .map((startIndex, breakIndex) => {
+      const endIndex = breakIndexes[breakIndex + 1] || lines.length;
+      const segmentLines = lines.slice(startIndex, endIndex);
+      const firstLine = segmentLines[0];
       const text = normalizePdfSelectionText(
-        paragraph.lines.map((line) => line.text).join(" ")
+        segmentLines.map((line) => line.text).join(" ")
       );
 
       return {
