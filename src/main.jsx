@@ -1068,19 +1068,23 @@ function getParagraphsFromWords(words, pageWidth) {
     line.text = line.words.map((word) => word.text).join(" ");
   }
 
+  const normalLineGap = getNormalLineGap(lines);
+  const medianLineHeight = getMedianValue(lines.map((line) => line.height)) || 1;
+  const paragraphGapThreshold = Math.max(
+    normalLineGap + medianLineHeight * 0.55,
+    normalLineGap * 1.9
+  );
   const paragraphs = [];
   let current = null;
 
   for (const line of lines) {
     const previous = current?.lines.at(-1);
     const verticalGap = previous ? line.y - (previous.y + previous.height) : 0;
-    const indentDelta = previous ? line.x - previous.x : 0;
     const isBulletContinuation = current && isBulletLikeLine(line.text);
     const startsNewParagraph =
       !current ||
       (!isBulletContinuation &&
-        (verticalGap > line.height * 0.85 ||
-          (indentDelta > 18 && current.lines.length > 1)));
+        verticalGap > paragraphGapThreshold);
 
     if (startsNewParagraph) {
       current = { lines: [line] };
@@ -1109,6 +1113,32 @@ function getParagraphsFromWords(words, pageWidth) {
 
 function isBulletLikeLine(text) {
   return /^([-*•]|\d+[.)])\s+/.test(text.trim());
+}
+
+function getNormalLineGap(lines) {
+  const gaps = [];
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const previous = lines[index - 1];
+    const current = lines[index];
+    const gap = current.y - (previous.y + previous.height);
+
+    if (gap >= -2 && gap < previous.height * 1.5) {
+      gaps.push(Math.max(0, gap));
+    }
+  }
+
+  return getMedianValue(gaps) || 0;
+}
+
+function getMedianValue(values) {
+  const sortedValues = values
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b);
+
+  if (!sortedValues.length) return 0;
+
+  return sortedValues[Math.floor(sortedValues.length / 2)];
 }
 
 function splitTextIntoWordRuns(text) {

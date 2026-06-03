@@ -1,6 +1,22 @@
 :root {
-  color: #202124;
-  background: #f4f1eb;
+  --color-text: #183226;
+  --color-muted: #5f7568;
+  --color-bg: #eef7ef;
+  --color-surface: #fdfffc;
+  --color-surface-soft: #f2faf2;
+  --color-surface-strong: #e4f3e6;
+  --color-border: #bfd8c5;
+  --color-border-strong: #91b99d;
+  --color-accent: #21894f;
+  --color-accent-strong: #136c3c;
+  --color-accent-soft: #dff2e4;
+  --color-focus: #2a9f61;
+  --color-danger-bg: #fff2ed;
+  --color-danger: #8a3a24;
+  --shadow-soft: rgba(24, 55, 37, 0.14);
+  --shadow-medium: rgba(24, 55, 37, 0.22);
+  color: var(--color-text);
+  background: var(--color-bg);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -30,8 +46,8 @@ main {
 
 main.isDraggingPdf {
   background:
-    linear-gradient(rgba(49, 86, 212, 0.05), rgba(49, 86, 212, 0.05)),
-    #f4f1eb;
+    linear-gradient(rgba(33, 137, 79, 0.05), rgba(33, 137, 79, 0.05)),
+    var(--color-bg);
 }
 
 .topbar {
@@ -44,8 +60,8 @@ main.isDraggingPdf {
   gap: 20px;
   min-height: 72px;
   padding: 12px 24px;
-  border-bottom: 1px solid #d8d1c5;
-  background: rgba(250, 248, 244, 0.94);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(253, 255, 252, 0.94);
   backdrop-filter: blur(10px);
 }
 
@@ -57,7 +73,7 @@ main.isDraggingPdf {
 
 .topbar p {
   margin: 4px 0 0;
-  color: #676159;
+  color: var(--color-muted);
   font-size: 13px;
 }
 
@@ -75,12 +91,12 @@ main.isDraggingPdf {
   gap: 10px;
   min-height: 44px;
   padding: 5px 8px;
-  border: 1px solid #cfc7bb;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: linear-gradient(180deg, #fffefa, #f7f3ec);
+  background: linear-gradient(180deg, var(--color-surface), var(--color-surface-soft));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 6px 18px rgba(30, 28, 24, 0.08);
+    0 6px 18px rgba(24, 55, 37, 0.08);
 }
 
 .zoomControls button {
@@ -91,7 +107,7 @@ main.isDraggingPdf {
   border: 1px solid transparent;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.7);
-  color: #202124;
+  color: var(--color-text);
   cursor: pointer;
   font-size: 17px;
   font-weight: 760;
@@ -103,7 +119,7 @@ main.isDraggingPdf {
 }
 
 .zoomControls button:hover {
-  border-color: #b8afa2;
+  border-color: var(--color-border-strong);
   background: #fff;
   transform: translateY(-1px);
 }
@@ -126,21 +142,21 @@ main.isDraggingPdf {
   background:
     linear-gradient(
       90deg,
-      #3156d4 0 var(--zoom-progress),
-      #d8d1c5 var(--zoom-progress) 100%
+      var(--color-accent) 0 var(--zoom-progress),
+      var(--color-border) var(--zoom-progress) 100%
     );
 }
 
 .zoomControls input[type="range"]::-moz-range-track {
   height: 6px;
   border-radius: 999px;
-  background: #d8d1c5;
+  background: var(--color-border);
 }
 
 .zoomControls input[type="range"]::-moz-range-progress {
   height: 6px;
   border-radius: 999px;
-  background: #3156d4;
+  background: var(--color-accent);
 }
 
 .zoomControls input[type="range"]::-webkit-slider-thumb {
@@ -150,8 +166,8 @@ main.isDraggingPdf {
   margin-top: -6px;
   border: 2px solid #fff;
   border-radius: 999px;
-  background: #3156d4;
-  box-shadow: 0 2px 8px rgba(49, 86, 212, 0.36);
+  background: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(33, 137, 79, 0.36);
   transition:
     box-shadow 140ms ease,
     transform 140ms ease;
@@ -162,18 +178,18 @@ main.isDraggingPdf {
   height: 16px;
   border: 2px solid #fff;
   border-radius: 999px;
-  background: #3156d4;
-  box-shadow: 0 2px 8px rgba(49, 86, 212, 0.36);
+  background: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(33, 137, 79, 0.36);
 }
 
 .zoomControls input[type="range"]:hover::-webkit-slider-thumb {
-  box-shadow: 0 3px 12px rgba(49, 86, 212, 0.42);
+  box-shadow: 0 3px 12px rgba(33, 137, 79, 0.42);
   transform: scale(1.08);
 }
 
 .zoomControls .zoomValue {
   min-width: 62px;
-  color: #4b4540;
+  color: var(--color-muted);
   font-size: 13px;
   font-weight: 720;
 }
@@ -184,16 +200,16 @@ main.isDraggingPdf {
   justify-content: center;
   min-width: 112px;
   height: 40px;
-  border: 1px solid #1f2933;
+  border: 1px solid var(--color-accent-strong);
   border-radius: 6px;
-  background: #1f2933;
+  background: var(--color-accent-strong);
   color: #fff;
   cursor: pointer;
   font-weight: 680;
 }
 
 .filePicker:hover {
-  background: #111820;
+  background: #0f5130;
 }
 
 .filePicker input {
@@ -214,7 +230,7 @@ main.isDraggingPdf {
 }
 
 .isDraggingPdf .readerShell {
-  outline: 2px solid rgba(49, 86, 212, 0.52);
+  outline: 2px solid rgba(33, 137, 79, 0.52);
   outline-offset: -12px;
 }
 
@@ -231,10 +247,10 @@ main.isDraggingPdf {
   width: min(680px, calc(100vw - 32px));
   min-height: 280px;
   margin: 8vh auto 0;
-  border: 1px dashed #b8afa2;
+  border: 1px dashed var(--color-border-strong);
   border-radius: 8px;
-  background: #fbfaf7;
-  color: #676159;
+  background: var(--color-surface);
+  color: var(--color-muted);
   text-align: center;
   padding: 28px;
   transition:
@@ -245,16 +261,16 @@ main.isDraggingPdf {
 }
 
 .isDraggingPdf .emptyState {
-  border-color: #3156d4;
-  background: #fffefa;
+  border-color: var(--color-accent);
+  background: var(--color-surface);
   box-shadow:
-    0 18px 48px rgba(30, 28, 24, 0.14),
-    0 0 0 4px rgba(49, 86, 212, 0.1);
+    0 18px 48px rgba(24, 55, 37, 0.14),
+    0 0 0 4px rgba(33, 137, 79, 0.1);
   transform: translateY(-2px);
 }
 
 .emptyState strong {
-  color: #202124;
+  color: var(--color-text);
   font-size: 20px;
 }
 
@@ -282,8 +298,8 @@ main.isDraggingPdf {
     transform 150ms ease-out,
     box-shadow 180ms ease;
   box-shadow:
-    0 12px 30px rgba(30, 28, 24, 0.14),
-    0 1px 2px rgba(30, 28, 24, 0.16);
+    0 12px 30px rgba(24, 55, 37, 0.14),
+    0 1px 2px rgba(24, 55, 37, 0.16);
 }
 
 .page canvas {
@@ -319,7 +335,7 @@ main.isDraggingPdf {
 }
 
 .textLayer ::selection {
-  background: rgba(255, 221, 87, 0.6);
+  background: rgba(142, 218, 149, 0.55);
 }
 
 .paragraphButton {
@@ -329,10 +345,10 @@ main.isDraggingPdf {
   height: 12px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 999px;
-  background: #3156d4;
+  background: var(--color-accent);
   box-shadow:
-    0 1px 3px rgba(30, 28, 24, 0.28),
-    0 0 0 2px rgba(49, 86, 212, 0.12);
+    0 1px 3px rgba(24, 55, 37, 0.28),
+    0 0 0 2px rgba(33, 137, 79, 0.12);
   cursor: pointer;
   opacity: 0.82;
   padding: 0;
@@ -352,20 +368,20 @@ main.isDraggingPdf {
   max-width: min(330px, calc(100vw - 32px));
   min-height: 36px;
   padding: 0 12px;
-  border: 1px solid #a99f92;
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
-  background: #1f2933;
+  background: var(--color-accent-strong);
   color: #fff;
   cursor: pointer;
   font-size: 13px;
   font-weight: 720;
-  box-shadow: 0 12px 32px rgba(30, 28, 24, 0.2);
+  box-shadow: 0 12px 32px rgba(24, 55, 37, 0.2);
   animation: hintIn 120ms ease-out;
   white-space: nowrap;
 }
 
 .selectionHint:hover {
-  background: #111820;
+  background: #0f5130;
 }
 
 @keyframes hintIn {
@@ -384,10 +400,10 @@ main.isDraggingPdf {
   position: absolute;
   z-index: 40;
   width: min(360px, calc(100vw - 32px));
-  border: 1px solid #b8afa2;
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
-  background: #fffefa;
-  box-shadow: 0 18px 48px rgba(30, 28, 24, 0.22);
+  background: var(--color-surface);
+  box-shadow: 0 18px 48px rgba(24, 55, 37, 0.22);
   padding: 12px;
 }
 
@@ -396,8 +412,8 @@ main.isDraggingPdf {
   overflow: auto;
   padding: 8px;
   border-radius: 6px;
-  background: #f4f1eb;
-  color: #4b4540;
+  background: var(--color-bg);
+  color: var(--color-muted);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -406,15 +422,15 @@ main.isDraggingPdf {
   width: 100%;
   margin-top: 10px;
   resize: vertical;
-  border: 1px solid #cfc7bb;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 10px;
-  color: #202124;
+  color: var(--color-text);
   background: #fff;
 }
 
 .askBox textarea:focus {
-  outline: 2px solid #406bff;
+  outline: 2px solid var(--color-focus);
   outline-offset: 1px;
 }
 
@@ -429,15 +445,15 @@ main.isDraggingPdf {
   min-width: 72px;
   min-height: 36px;
   border-radius: 6px;
-  border: 1px solid #c4bbb0;
+  border: 1px solid var(--color-border);
   background: #fff;
   cursor: pointer;
   font-weight: 680;
 }
 
 .askActions button[type="submit"] {
-  border-color: #3156d4;
-  background: #3156d4;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -457,13 +473,13 @@ main.isDraggingPdf {
 }
 
 .answer {
-  background: #eef4ff;
-  color: #1d3264;
+  background: var(--color-accent-soft);
+  color: #174f32;
 }
 
 .error {
-  background: #fff1ef;
-  color: #8a291f;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .answerPanel {
@@ -473,10 +489,10 @@ main.isDraggingPdf {
   bottom: 16px;
   z-index: 30;
   width: calc(50vw - 24px);
-  border: 1px solid #d8d1c5;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fffefa;
-  box-shadow: 0 18px 52px rgba(30, 28, 24, 0.22);
+  background: var(--color-surface);
+  box-shadow: 0 18px 52px rgba(24, 55, 37, 0.22);
   animation: panelIn 180ms ease-out;
   display: flex;
   flex-direction: column;
@@ -489,13 +505,13 @@ main.isDraggingPdf {
   justify-content: space-between;
   gap: 12px;
   padding: 18px 18px 14px;
-  border-bottom: 1px solid #e4ddd3;
-  background: rgba(255, 254, 250, 0.96);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(253, 255, 252, 0.96);
 }
 
 .answerPanelHeader span {
   display: block;
-  color: #676159;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 760;
   text-transform: uppercase;
@@ -504,7 +520,7 @@ main.isDraggingPdf {
 .answerPanelHeader strong {
   display: block;
   margin-top: 5px;
-  color: #202124;
+  color: var(--color-text);
   font-size: 15px;
   line-height: 1.35;
 }
@@ -514,10 +530,10 @@ main.isDraggingPdf {
   place-items: center;
   min-width: 34px;
   height: 34px;
-  border: 1px solid #d8d1c5;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   background: #fff;
-  color: #4b4540;
+  color: var(--color-muted);
   cursor: pointer;
   font-size: 18px;
   font-weight: 760;
@@ -525,8 +541,8 @@ main.isDraggingPdf {
 }
 
 .answerPanelHeader button:hover {
-  border-color: #a99f92;
-  background: #f4f1eb;
+  border-color: var(--color-border-strong);
+  background: var(--color-bg);
 }
 
 .answerPanelBody {
@@ -540,7 +556,7 @@ main.isDraggingPdf {
 
 .answerPanelBody h2 {
   margin: 0 0 8px;
-  color: #676159;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 760;
   text-transform: uppercase;
@@ -559,13 +575,13 @@ main.isDraggingPdf {
 .panelSelection {
   max-height: 170px;
   overflow: auto;
-  background: #f4f1eb;
-  color: #4b4540;
+  background: var(--color-bg);
+  color: var(--color-muted);
 }
 
 .panelAnswer {
   margin: 0;
-  color: #202124;
+  color: var(--color-text);
   font-size: 15px;
   line-height: 1.72;
 }
@@ -582,7 +598,7 @@ main.isDraggingPdf {
 
 .panelAnswer a,
 .paragraphOverviewAnswer a {
-  color: #3156d4;
+  color: var(--color-accent);
   font-weight: 700;
   text-decoration: none;
 }
@@ -593,8 +609,8 @@ main.isDraggingPdf {
 }
 
 .panelError {
-  background: #fff1ef;
-  color: #8a291f;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .paragraphOverview {
@@ -603,10 +619,10 @@ main.isDraggingPdf {
   width: min(460px, calc(100vw - 32px));
   max-height: none;
   overflow: visible;
-  border: 1px solid #cfc7bb;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fffefa;
-  box-shadow: 0 18px 48px rgba(30, 28, 24, 0.22);
+  background: var(--color-surface);
+  box-shadow: 0 18px 48px rgba(24, 55, 37, 0.22);
   padding: 12px;
   animation: hintIn 120ms ease-out;
 }
@@ -620,7 +636,7 @@ main.isDraggingPdf {
 }
 
 .paragraphOverviewHeader span {
-  color: #676159;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 760;
   text-transform: uppercase;
@@ -631,10 +647,10 @@ main.isDraggingPdf {
   place-items: center;
   min-width: 28px;
   height: 28px;
-  border: 1px solid #d8d1c5;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   background: #fff;
-  color: #4b4540;
+  color: var(--color-muted);
   cursor: pointer;
   font-size: 15px;
   font-weight: 760;
@@ -643,7 +659,7 @@ main.isDraggingPdf {
 
 .paragraphOverviewAnswer {
   margin: 0;
-  color: #202124;
+  color: var(--color-text);
   font-size: 14.5px;
   line-height: 1.66;
 }
@@ -655,8 +671,8 @@ main.isDraggingPdf {
   min-height: 48px;
   border-radius: 8px;
   padding: 12px;
-  background: #f4f1eb;
-  color: #4b4540;
+  background: var(--color-bg);
+  color: var(--color-muted);
   font-size: 14px;
   font-weight: 680;
 }
@@ -670,8 +686,8 @@ main.isDraggingPdf {
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #cfc7bb;
-  border-top-color: #3156d4;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
   border-radius: 999px;
   animation: spin 780ms linear infinite;
 }
@@ -682,7 +698,7 @@ main.isDraggingPdf {
   height: 1.1em;
   margin-left: 3px;
   vertical-align: -0.18em;
-  background: #202124;
+  background: var(--color-text);
   animation: blink 850ms steps(2, start) infinite;
 }
 
