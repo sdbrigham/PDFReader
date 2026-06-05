@@ -35,6 +35,7 @@ function App() {
   const promptRef = useRef(null);
   const readerShellRef = useRef(null);
   const paragraphRequestIdRef = useRef(0);
+  const paragraphSummaryHistoryRef = useRef(new Map());
   const zoomProgress = ((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
   const effectiveZoom = answerPanel && panelFitZoom ? Math.min(zoom, panelFitZoom) : zoom;
 
@@ -478,7 +479,7 @@ function App() {
           mode: "overview",
           selection: paragraphText,
           prompt:
-            "Create a reading aid for this text. Start immediately with the meaning in plain language, bypass jargon, and include enough detail that the reader can move faster without rereading. If it includes bullets, fold them into the explanation instead of using a bullet list."
+            "Summarize only this text span. Start immediately with its specific meaning in plain language, bypass jargon, and do not reuse a generic summary from another section. If it includes bullets, fold them into the explanation instead of using a bullet list."
         })
       });
 
@@ -568,11 +569,18 @@ function App() {
 
   function applyParagraphOverviewToken(currentOverview, token) {
     const rawAnswer = `${currentOverview.rawAnswer || ""}${token}`;
+    const sourceKey = createOverviewKey(currentOverview.text);
+    const answer = ensureUniqueOverviewAnswer({
+      answer: cleanParagraphOverviewForDisplay(rawAnswer, currentOverview.text),
+      sourceText: currentOverview.text,
+      sourceKey,
+      history: paragraphSummaryHistoryRef.current
+    });
 
     return {
       ...currentOverview,
       rawAnswer,
-      answer: cleanParagraphOverviewForDisplay(rawAnswer, currentOverview.text),
+      answer,
       isLoading: false
     };
   }
@@ -776,6 +784,26 @@ function cleanParagraphOverviewForDisplay(answer, sourceText) {
   );
 }
 
+function ensureUniqueOverviewAnswer({ answer, sourceText, sourceKey, history }) {
+  if (!answer) return answer;
+
+  const answerKey = createOverviewKey(answer);
+  const existingSourceKey = history.get(answerKey);
+
+  if (existingSourceKey && existingSourceKey !== sourceKey) {
+    const localAnswer = buildDistinctLocalReadingAid(sourceText, answerKey, history);
+    history.set(createOverviewKey(localAnswer), sourceKey);
+    return localAnswer;
+  }
+
+  history.set(answerKey, sourceKey);
+  return answer;
+}
+
+function createOverviewKey(text) {
+  return normalizePdfSelectionText(text).toLowerCase();
+}
+
 function isGenericOverviewFailure(text) {
   return /highlighted passage frames|web context broadens|A full answer to|Sources checked/i.test(
     text
@@ -814,16 +842,25 @@ function stripOverviewLeadIn(text) {
 
 function buildLocalReadingAid(sourceText) {
   const cleaned = normalizePdfSelectionText(sourceText);
+  return createTextSpecificDisplayOverview(cleaned, 70);
+}
 
-  if (/iris|coris|handwriting|political blog|goal is to predict/i.test(cleaned)) {
-    return "Classification uses measured features to predict a category. The examples show the same pattern: measure useful information about a flower, patient, image, or blog, then use those measurements to predict its label.";
-  }
+function buildDistinctLocalReadingAid(sourceText, duplicateAnswerKey, history) {
+  const cleaned = normalizePdfSelectionText(sourceText);
+  const sentences = splitIntoDisplaySentences(cleaned);
+  const candidates = [
+    createTextSpecificDisplayOverview(cleaned, 70),
+    limitOverviewWords(sentences.slice(1, 4).join(" "), 70),
+    limitOverviewWords(sentences.slice(-3).join(" "), 70),
+    limitOverviewWords(cleaned, 70)
+  ].filter(Boolean);
 
-  if (/decision boundaries?|classification|classifier|h\s*:\s*X|input space|covariate/i.test(cleaned)) {
-    return "A classifier is a rule that maps an input to a category. `X` is the space of possible inputs, and the classifier divides that space into regions where each region gets a different predicted label.";
-  }
-
-  return limitOverviewWords(splitIntoDisplaySentences(cleaned).slice(0, 2).join(" "), 70);
+  return (
+    candidates.find((candidate) => {
+      const key = createOverviewKey(candidate);
+      return key !== duplicateAnswerKey && !history.has(key);
+    }) || candidates[0] || cleaned
+  );
 }
 
 function splitIntoDisplaySentences(text) {
@@ -832,6 +869,51 @@ function splitIntoDisplaySentences(text) {
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
+}
+
+function createTextSpecificDisplayOverview(text, maxWords) {
+  const sentences = splitIntoDisplaySentences(text);
+  const selectedSentences = selectDisplayOverviewSentences(sentences, text);
+
+  return limitOverviewWords(selectedSentences.join(" ") || text, maxWords);
+}
+
+function selectDisplayOverviewSentences(sentences, fallbackText) {
+  const contentSentences = sentences
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.split(/\s+/).length >= 4)
+    .filter((sentence) => !/^(figure|table)\s+\d+/i.test(sentence));
+
+  if (!contentSentences.length) return [fallbackText];
+  if (contentSentences.length <= 2) return contentSentences;
+
+  const first = contentSentences[0];
+  const second = contentSentences.find(
+    (sentence) =>
+      sentence !== first &&
+      /goal|task|predict|classif|decision|risk|rule|model|estimate|boundary|function|means|called|defined|assume|therefore|because/i.test(
+        sentence
+      )
+  );
+  const last = findLastMatchingSentence(
+    contentSentences,
+    (sentence) =>
+      sentence !== first &&
+      sentence !== second &&
+      /goal|task|predict|classif|decision|risk|rule|model|estimate|boundary|function|means|called|defined|assume|therefore|because/i.test(
+        sentence
+      )
+  );
+
+  return [first, second, last].filter(Boolean).slice(0, 3);
+}
+
+function findLastMatchingSentence(sentences, predicate) {
+  for (let index = sentences.length - 1; index >= 0; index -= 1) {
+    if (predicate(sentences[index])) return sentences[index];
+  }
+
+  return "";
 }
 
 function limitOverviewWords(text, maxWords) {
